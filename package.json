@@ -3,7 +3,7 @@
   "productName": "mails-agus-electron",
   "version": "1.0.0",
   "description": "My Electron application description",
-  "main": "src/index.js",
+  "main": "src/main/main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -45,6 +45,8 @@
     }
   },
   "dependencies": {
+    "@popperjs/core": "^2.9.2",
+    "bootstrap": "^5.0.2",
     "electron-squirrel-startup": "^1.0.0",
     "xlsx": "^0.17.0"
   },

@@ -1,8 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
-const XLSX = require('xlsx');
-
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
@@ -10,15 +8,17 @@ if (require('electron-squirrel-startup')) {
 
 app.on('ready', () => {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 800,
+    resizable: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       enableRemoteModule: true,
     }
   })
-  mainWindow.loadFile(path.join(__dirname, "index.html"));
+
+  mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 
   mainWindow.webContents.openDevTools();
 });
