@@ -2,15 +2,21 @@ const XLSX = require('xlsx');
 const electron = require('electron').remote;
 
 const selectFileBtn = document.getElementById('selectFileBtn');
-const namesInput = document.getElementById('namesInput');
+// const buyersInput = document.getElementById('buyersInput');
 const processBtn = document.getElementById('processBtn');
+const addUserEntryBtn = document.getElementById('addUserEntry');
+const fileNameLabel = document.getElementById('fileName');
+
 
 selectFileBtn.addEventListener('click', handleSelectBtn);
 processBtn.addEventListener('click', processData);
+addUserEntryBtn.addEventListener('click', addUserEntry)
 
 // Current workbook
 let workbook;
+let workbookName;
 let shipments = [];
+let buyersData = [];
 
 async function handleSelectBtn() {
     const dialogResponse = await electron.dialog.showOpenDialog({
@@ -18,10 +24,11 @@ async function handleSelectBtn() {
         filters: [{ name: 'Spreadsheets', extensions: ['xlsx'] }],
         properties: ['openFile']
     });
-
     if (dialogResponse.filePaths.length > 0) {
         console.log("Process file", dialogResponse.filePaths[0]);
         workbook = XLSX.readFile(dialogResponse.filePaths[0]);
+        workbookName = dialogResponse.filePaths[0].split('\\')[dialogResponse.filePaths[0].split('\\').length - 1]
+        fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
         parseWorkbook()
     }
 }
@@ -41,38 +48,53 @@ function parseWorkbook() {
 };
 
 function processData() {
-    // VALIDAR NOMBRES, WORKSHEET
-    const buyersNames = namesInput.value.split(',');
-    console.log("Buyers", buyersNames);
+    // TODO: VALIDAR NOMBRES, WORKSHEET
+    console.log("BUYERS DATA", buyersData)
     //
-    buyersNames.forEach(buyerName => {
-        let shipment = shipments.find(shipment => shipment.userName == buyerName.trim())
+    buyersData.forEach(buyerData => {
+        let shipment = shipments.find(shipment => shipment.userName == buyerData.userName.trim())
+        buyerData.row.cells[2].innerHTML = shipment.weliveryId;
+        buyerData.row.cells[3].innerHTML = "Enviado";
         if (shipments != null) {
-            notifyShipment(shipment);
+            notifyShipment(shipment, buyerData.userEmail);
         }
 
     })
 }
 
 
-
-
-
-
-
-function notifyShipment(shipment) {
-    console.log(`Notify shipment from ${shipment.userName} with WeliveryID: ${shipment.weliveryId}`)
+function addUserEntry() {
+    //TODO: VALIDAR
+    const userNameInput = document.getElementById('nameInput');
+    const userEmailInput = document.getElementById('emailInput');
+    //
+    const table = document.getElementById('usersTable');
+    let row = table.insertRow();
+    row.classList.add('fade-row');
+    row.insertCell(0).innerHTML = userNameInput.value;
+    row.insertCell(1).innerHTML = userEmailInput.value;
+    row.insertCell(2).innerHTML = "-";
+    row.insertCell(3).innerHTML = "-";
+    row.insertCell(4);
+    //
+    buyersData.push({ userName: userNameInput.value, userEmail: userEmailInput.value, row: row });
+    userNameInput.value = null;
+    userEmailInput.value = null;
 }
 
 
 
-function printShipments() {
-    console.table(shipments);
-}
 
+
+
+
+function notifyShipment(shipment, email) {
+    console.log(`Notify shipment of ${shipment.userName} with WeliveryID: ${shipment.weliveryId} to ${email}`)
+}
 
 function clearAll() {
     workbook = null;
     shipments = [];
-    namesInput.value = null;
+    buyersData = [];
+
 }
