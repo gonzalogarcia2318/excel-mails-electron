@@ -1,5 +1,6 @@
 const XLSX = require('xlsx');
 const electron = require('electron').remote;
+const bootstrap = require('bootstrap');
 
 const selectFileBtn = document.getElementById('selectFileBtn');
 // const buyersInput = document.getElementById('buyersInput');
@@ -53,12 +54,17 @@ function processData() {
     //
     buyersData.forEach(buyerData => {
         let shipment = shipments.find(shipment => shipment.userName == buyerData.userName.trim())
-        buyerData.row.cells[2].innerHTML = shipment.weliveryId;
-        buyerData.row.cells[3].innerHTML = "Enviado";
-        if (shipments != null) {
+        if (shipment != null) {
+            buyerData.row.cells[2].className = 'fw-bold';
+            buyerData.row.cells[2].innerHTML = shipment.weliveryId;
+
+            let copyTextCell = buyerData.row.cells[3];
+            let copyTextBtn = createCopyTextButton(shipment, buyerData.userEmail);
+            copyTextCell.appendChild(copyTextBtn);
+
+
             notifyShipment(shipment, buyerData.userEmail);
         }
-
     })
 }
 
@@ -74,7 +80,7 @@ function addUserEntry() {
     row.insertCell(0).innerHTML = userNameInput.value;
     row.insertCell(1).innerHTML = userEmailInput.value;
     row.insertCell(2).innerHTML = "-";
-    row.insertCell(3).innerHTML = "-";
+    row.insertCell(3);
     row.insertCell(4);
     //
     buyersData.push({ userName: userNameInput.value, userEmail: userEmailInput.value, row: row });
@@ -82,10 +88,34 @@ function addUserEntry() {
     userEmailInput.value = null;
 }
 
-
-
-
-
+function createCopyTextButton(shipment, email) {
+    let copyTextBtn = document.createElement('button');
+    copyTextBtn.className = 'btn';
+    let icon = document.createElement('i');
+    icon.className = 'bi bi-clipboard';
+    let tooltip = new bootstrap.Tooltip(copyTextBtn, {
+        title: "Copiar",
+        placement: 'bottom',
+        boundary: document.body
+    })
+    copyTextBtn.appendChild(icon);
+    // Function to copy text into clipboard
+    copyTextBtn.onclick = function () {
+        const element = document.createElement('textarea');
+        const emailContent = `Hola, ${shipment.userName}\n\n`
+            + `Ya despachamos tu pedido. Podes seguirlo desde este link: https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}\n`
+            + `Te llegará entre esta tarde y mañana.\n\n`
+            + `Cualquier cosa, podes contactarte con soporte@welivery.com.ar\n\n`
+            + `Saludos,\n`
+            + `Agustina`
+        element.value = emailContent;
+        document.body.appendChild(element);
+        element.select();
+        document.execCommand('copy');
+        document.body.removeChild(element);
+    };
+    return copyTextBtn;
+}
 
 
 function notifyShipment(shipment, email) {
