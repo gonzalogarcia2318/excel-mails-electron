@@ -8,6 +8,7 @@
   <title>Document</title>
 
   <script defer src="render.js"></script>
+  <script defer src="shipment.js"></script>
 
   <!-- Bootstrap -->
   <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
@@ -22,8 +23,24 @@
 
     <div>
       <button class="btn btn-primary" id="selectFileBtn">Selecciona un archivo</button>
+
+
+      <div class="mt-2">
+        <input type="text" class="form-control" id="namesInput" placeholder="Nombres de los Compradores">
+      </div>
+
+
+      <button class="btn btn-success mt-2" id="processBtn">Procesar</button>
+
+
     </div>
 
+  </div>
+
+
+  <div style="position: absolute; bottom: 20px;">
+    <button class="btn btn-info" onclick="printShipments()">PRINT</button>
+    <button class="btn btn-danger" onclick="clearAll()">CLEAR ALL</button>
   </div>
 
 </body>
