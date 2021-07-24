@@ -53,13 +53,13 @@ function processData() {
     console.log("BUYERS DATA", buyersData)
     //
     buyersData.forEach(buyerData => {
-        let shipment = shipments.find(shipment => shipment.userName == buyerData.userName.trim())
+        let shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
         if (shipment != null) {
             buyerData.row.cells[2].className = 'fw-bold';
             buyerData.row.cells[2].innerHTML = shipment.weliveryId;
 
             let copyTextCell = buyerData.row.cells[3];
-            let copyTextBtn = createCopyTextButton(shipment, buyerData.userEmail);
+            let copyTextBtn = createCopyTextButton(shipment);
             copyTextCell.appendChild(copyTextBtn);
 
 
@@ -88,7 +88,7 @@ function addUserEntry() {
     userEmailInput.value = null;
 }
 
-function createCopyTextButton(shipment, email) {
+function createCopyTextButton(shipment) {
     let copyTextBtn = document.createElement('button');
     copyTextBtn.className = 'btn';
     let icon = document.createElement('i');
@@ -99,6 +99,7 @@ function createCopyTextButton(shipment, email) {
         boundary: document.body
     })
     copyTextBtn.appendChild(icon);
+
     // Function to copy text into clipboard
     copyTextBtn.onclick = function () {
         const element = document.createElement('textarea');
@@ -123,6 +124,7 @@ function notifyShipment(shipment, email) {
 }
 
 function clearAll() {
+    // TODO: CLEAR ALL
     workbook = null;
     shipments = [];
     buyersData = [];
