@@ -1,19 +1,25 @@
+import { Shipment } from './shipment.js';
+
 const XLSX = require('xlsx');
 const electron = require('electron').remote;
 const bootstrap = require('bootstrap');
 
 const selectFileBtn = document.getElementById('selectFileBtn');
-// const buyersInput = document.getElementById('buyersInput');
 const processBtn = document.getElementById('processBtn');
 const addUserEntryBtn = document.getElementById('addUserEntry');
 const fileNameLabel = document.getElementById('fileName');
+const userNameInput = document.getElementById('nameInput');
 
 
 selectFileBtn.addEventListener('click', handleSelectBtn);
 processBtn.addEventListener('click', processData);
-addUserEntryBtn.addEventListener('click', addUserEntry)
+addUserEntryBtn.addEventListener('click', onAddUserEntryClick);
+userNameInput.addEventListener('keypress', (event) => {
+    if (event.key == 'Enter') {
+        onAddUserEntryClick();
+    }
+});
 
-// Current workbook
 let workbook;
 let workbookName;
 let shipments = [];
@@ -31,6 +37,7 @@ async function handleSelectBtn() {
         workbookName = dialogResponse.filePaths[0].split('\\')[dialogResponse.filePaths[0].split('\\').length - 1]
         fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
         parseWorkbook()
+        processBtn.disabled = false;
     }
 }
 
@@ -40,52 +47,90 @@ function parseWorkbook() {
     // Range: 1 to skip first row of the worksheet
     const worksheetJson = XLSX.utils.sheet_to_json(worksheet, { range: 1 });
 
-    // INGRESAR NOMBRES, BUSCAR POR NOMBRE EL ID Y NOTIFICAR
     for (let row in worksheetJson) {
         const data = worksheetJson[row];
         const date = data['Fecha creación'].split(/\s+/)[1]; // Split considering all spaces
-        shipments.push(new Shipment(data['Nombre y Apellido'], data['WeliveryID'], data['Status'], date));
+        if (data['Nombre y Apellido']) { // If name is not empty or null, add to array
+            shipments.push(new Shipment(data['Nombre y Apellido'], data['WeliveryID'], data['Status'], date));
+        }
+
     }
 };
 
 function processData() {
-    // TODO: VALIDAR NOMBRES, WORKSHEET
-    console.log("BUYERS DATA", buyersData)
+    addUserEntry(false);
     //
-    buyersData.forEach(buyerData => {
-        let shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
-        if (shipment != null) {
-            buyerData.row.cells[2].className = 'fw-bold';
-            buyerData.row.cells[2].innerHTML = shipment.weliveryId;
+    if (!shipments.length) { // if length returns 0 => 0 = false => !false should enter
+        console.log("Error: No shipments loaded");
+        return;
+    }
+    if (!buyersData.length) {
+        console.log("Error: No names loaded");
+        return;
+    }
+    //
+    buyersData.filter(buyerData => !buyerData.processed)
+        .forEach(buyerData => {
+            let shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
+            if (shipment != null) {
+                buyerData.row.cells[2].className = 'fw-bold';
+                buyerData.row.cells[2].innerHTML = shipment.weliveryId;
+                buyerData.row.cells[3].appendChild(createCopyTextButton(shipment));
 
-            let copyTextCell = buyerData.row.cells[3];
-            let copyTextBtn = createCopyTextButton(shipment);
-            copyTextCell.appendChild(copyTextBtn);
+                notifyShipment(shipment, buyerData.userEmail);
 
-
-            notifyShipment(shipment, buyerData.userEmail);
-        }
-    })
+                buyerData.processed = true;
+            } else {
+                if (buyerData.row.cells[3].firstChild == null) { // If button wasn't added before
+                    buyerData.row.classList.remove('fade-row-in');
+                    buyerData.row.cells[2].className = 'fw-bold text-danger';
+                    buyerData.row.cells[2].innerHTML = 'No se encontró el ID';
+                    buyerData.row.cells[3].appendChild(createDeleteRowButton(buyerData))
+                }
+            }
+        })
 }
 
 
-function addUserEntry() {
-    //TODO: VALIDAR
+function onAddUserEntryClick() {
+    addUserEntry(true);
+}
+
+function addUserEntry(showError) {
     const userNameInput = document.getElementById('nameInput');
     const userEmailInput = document.getElementById('emailInput');
     //
+    if (!validateUserEntry(userNameInput.value, showError)) {
+        return;
+    }
+    //
     const table = document.getElementById('usersTable');
     let row = table.insertRow();
-    row.classList.add('fade-row');
+    row.classList.add('fade-row-in');
     row.insertCell(0).innerHTML = userNameInput.value;
     row.insertCell(1).innerHTML = userEmailInput.value;
     row.insertCell(2).innerHTML = "-";
     row.insertCell(3);
-    row.insertCell(4);
     //
-    buyersData.push({ userName: userNameInput.value, userEmail: userEmailInput.value, row: row });
+    buyersData.push({ userName: userNameInput.value, userEmail: userEmailInput.value, row: row, processed: false });
     userNameInput.value = null;
     userEmailInput.value = null;
+}
+
+function validateUserEntry(userNameInput, showError) {
+    if (!userNameInput) {
+        if (showError) {
+            console.log("Error: Name is null");
+        }
+        return false;
+    }
+    if (userIsAlreadyEntered(userNameInput)) {
+        if (showError) {
+            console.log("Error: User is already in the list");
+        }
+        return false;
+    }
+    return true;
 }
 
 function createCopyTextButton(shipment) {
@@ -101,7 +146,7 @@ function createCopyTextButton(shipment) {
     copyTextBtn.appendChild(icon);
 
     // Function to copy text into clipboard
-    copyTextBtn.onclick = function () {
+    copyTextBtn.addEventListener('click', function () {
         const element = document.createElement('textarea');
         const emailContent = `Hola, ${shipment.userName}\n\n`
             + `Ya despachamos tu pedido. Podes seguirlo desde este link: https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}\n`
@@ -114,13 +159,42 @@ function createCopyTextButton(shipment) {
         element.select();
         document.execCommand('copy');
         document.body.removeChild(element);
-    };
+    })
     return copyTextBtn;
+}
+
+function createDeleteRowButton(buyerData) {
+    let deleteRowBtn = document.createElement('button');
+    deleteRowBtn.className = 'btn';
+    let icon = document.createElement('i');
+    icon.className = 'bi bi-trash';
+    let tooltip = new bootstrap.Tooltip(deleteRowBtn, {
+        title: "Eliminar",
+        placement: 'bottom',
+        boundary: document.body
+    })
+    deleteRowBtn.appendChild(icon);
+
+    deleteRowBtn.addEventListener('click', function () {
+        buyerData.row.onanimationend = () => {
+            tooltip.dispose();
+            buyerData.row.remove();
+        }
+        buyerData.row.classList.add('fade-row-out');
+        buyersData.splice(buyersData.indexOf(buyerData), 1); // Remove user from array
+    })
+
+    return deleteRowBtn;
 }
 
 
 function notifyShipment(shipment, email) {
     console.log(`Notify shipment of ${shipment.userName} with WeliveryID: ${shipment.weliveryId} to ${email}`)
+}
+
+
+function userIsAlreadyEntered(userNameInput) {
+    return buyersData.find(buyer => buyer.userName === userNameInput) != null
 }
 
 function clearAll() {

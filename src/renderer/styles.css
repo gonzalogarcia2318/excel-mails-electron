@@ -13,15 +13,28 @@ body {
   flex: 1 0 30%;
 }
 
-.fade-row {
-  animation: fade .2s ease-in;
+.fade-row-in {
+  animation: fade-in .2s ease-in;
 }
 
-@keyframes fade {
+@keyframes fade-in {
   0% {
     opacity: 0;
   }
   100% {
     opacity: 1;
+  }
+}
+
+.fade-row-out {
+  animation: fade-out .2s ease-in;
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }

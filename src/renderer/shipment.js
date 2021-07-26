@@ -1,4 +1,4 @@
-class Shipment {
+export class Shipment {
 
     constructor(userName, weliveryId, status, date) {
         this.userName = userName;
