@@ -7,6 +7,7 @@ body {
   padding: 2rem;
   height: 100%;
   background-color: var(--bs-light);
+  scroll-behavior: smooth;
 }
 
 .select-file {
@@ -37,4 +38,21 @@ body {
   100% {
     opacity: 0;
   }
+}
+
+.toast-position-center {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) !important;
+  padding: 1em !important;
+}
+
+.toast-fade-in {
+  animation: fade-in .5s ease-in;
+}
+
+.divider-bottom {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1em;
 }

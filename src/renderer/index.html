@@ -22,7 +22,7 @@
 
   <div class="container">
 
-    <div class="row align-items-center justify-content-between">
+    <div class="row align-items-center justify-content-between divider-bottom">
       <h4 class="col-auto ps-0" id="fileName">Planilla:</h4>
       <button class="btn btn-primary col-auto" id="selectFileBtn">Seleccionar Planilla</button>
 
@@ -62,12 +62,26 @@
     </div>
 
 
-    <div class="row mt-3 justify-content-center">
+    <div class="row mt-4 justify-content-center">
       <button class="btn btn-success w-50" id="processBtn" disabled>Procesar</button>
     </div>
 
 
+    <div class="toast-container toast-position-center">
+      <div class="toast hide text-white bg-danger toast-fade-in" role="alert" id="errorToast">
+        <div class="d-flex">
+          <div class="toast-body">
+            <span id="errorToastMessage">Hello, world! This is a toast message. </span>
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+
+
 
 </body>
 

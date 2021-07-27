@@ -61,11 +61,11 @@ function processData() {
     addUserEntry(false);
     //
     if (!shipments.length) { // if length returns 0 => 0 = false => !false should enter
-        console.log("Error: No shipments loaded");
+        showErorr("No hay envios cargados. Seleccionar Planilla");
         return;
     }
     if (!buyersData.length) {
-        console.log("Error: No names loaded");
+        showErorr("Ingresar nombres de los compradores");
         return;
     }
     //
@@ -76,6 +76,7 @@ function processData() {
                 buyerData.row.cells[2].className = 'fw-bold';
                 buyerData.row.cells[2].innerHTML = shipment.weliveryId;
                 buyerData.row.cells[3].appendChild(createCopyTextButton(shipment));
+                buyerData.row.cells[3].appendChild(createDeleteRowButton(buyerData))
 
                 notifyShipment(shipment, buyerData.userEmail);
 
@@ -120,13 +121,13 @@ function addUserEntry(showError) {
 function validateUserEntry(userNameInput, showError) {
     if (!userNameInput) {
         if (showError) {
-            console.log("Error: Name is null");
+            showErorr("Nombre inválido");
         }
         return false;
     }
     if (userIsAlreadyEntered(userNameInput)) {
         if (showError) {
-            console.log("Error: User is already in the list");
+            showErorr("El comprador ya esta en la lista")
         }
         return false;
     }
@@ -202,5 +203,11 @@ function clearAll() {
     workbook = null;
     shipments = [];
     buyersData = [];
+}
 
+function showErorr(errorMessage) {
+    const errorToastElement = document.getElementById('errorToast');
+    document.getElementById('errorToastMessage').innerHTML = errorMessage;
+    const toast = new bootstrap.Toast(errorToastElement, { delay: 5000, animation: true })
+    toast.show();
 }
