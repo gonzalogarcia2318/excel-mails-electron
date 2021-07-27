@@ -2,6 +2,7 @@ import { Shipment } from './shipment.js';
 
 const XLSX = require('xlsx');
 const electron = require('electron').remote;
+const ipcRenderer = require('electron').ipcRenderer;
 const bootstrap = require('bootstrap');
 
 const selectFileBtn = document.getElementById('selectFileBtn');
@@ -19,6 +20,8 @@ userNameInput.addEventListener('keypress', (event) => {
         onAddUserEntryClick();
     }
 });
+
+ipcRenderer.on('reset-values', resetValues);
 
 let workbook;
 let workbookName;
@@ -198,10 +201,13 @@ function userIsAlreadyEntered(userNameInput) {
     return buyersData.find(buyer => buyer.userName === userNameInput) != null
 }
 
-function clearAll() {
-    // TODO: CLEAR ALL
+function resetValues() {
     workbook = null;
+    workbookName = "";
+    processBtn.disabled = true;
+    fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
     shipments = [];
+    buyersData.forEach(buyerData => buyerData.row.remove());
     buyersData = [];
 }
 
