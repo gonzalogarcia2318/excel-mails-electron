@@ -152,13 +152,7 @@ function createCopyTextButton(shipment) {
     // Function to copy text into clipboard
     copyTextBtn.addEventListener('click', function () {
         const element = document.createElement('textarea');
-        const emailContent = `Hola, ${shipment.userName}\n\n`
-            + `Ya despachamos tu pedido. Podes seguirlo desde este link: https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}\n`
-            + `Te llegará entre esta tarde y mañana.\n\n`
-            + `Cualquier cosa, podes contactarte con soporte@welivery.com.ar\n\n`
-            + `Saludos,\n`
-            + `Agustina`
-        element.value = emailContent;
+        element.value = generateEmailMessage(shipment);
         document.body.appendChild(element);
         element.select();
         document.execCommand('copy');
@@ -219,14 +213,14 @@ function showErorr(errorMessage) {
 }
 
 
-// PRUEBAS PARA PERSISTIR DATOS
-function addToStorage() {
-    let message = document.getElementById('nameInput').value;
-    ipcRenderer.send('edit-email-message', message);
+function getEmailMessage() {
+    return ipcRenderer.sendSync('get-email-message');
 }
 
-function viewStorage() {
-    ipcRenderer.send('get-email-message');
+// At the moment I am only replacing the name and the link. Maybe in a future, this could use every shipment attribute.
+function generateEmailMessage(shipment) {
+    let emailMessage = getEmailMessage();
+    emailMessage = emailMessage.replaceAll('${nombre}', shipment.userName);
+    emailMessage = emailMessage.replaceAll('${link}', `https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}`);
+    return emailMessage;
 }
-
-

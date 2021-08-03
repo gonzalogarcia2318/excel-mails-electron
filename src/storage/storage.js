@@ -30,6 +30,13 @@ class Storage {
     }
 }
 
-const defaults = { emailMessage: 'Hola! Este es el mail por defecto.' };
+const defaults = {
+    emailMessage: 'DEFAULTHola, ${nombre}\n\n'
+        + 'Ya despachamos tu pedido. Podes seguirlo desde este link: ${link}\n'
+        + 'Te llegará entre esta tarde y mañana.\n\n'
+        + 'Cualquier cosa, podes contactarte con soporte@welivery.com.ar\n\n'
+        + 'Saludos,\n'
+        + 'Agustina'
+};
 
 module.exports = Storage;

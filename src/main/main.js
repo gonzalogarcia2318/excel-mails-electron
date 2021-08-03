@@ -64,16 +64,20 @@ app.on('window-all-closed', () => {
 // Store and read data
 const storage = new Storage();
 
-ipcMain.on('get-email-message', getEmailMessage);
+ipcMain.on('get-email-message', (event, args) => {
+  event.returnValue = getEmailMessage();
+});
 
-ipcMain.on('edit-email-message', editEmailMessage);
+ipcMain.on('edit-email-message', (event, value) => {
+  editEmailMessage(value);
+});
 
 
-function getEmailMessage(event, args) {
+function getEmailMessage() {
   return storage.get('emailMessage');
 }
 
-function editEmailMessage(event, value) {
+function editEmailMessage(value) {
   storage.set('emailMessage', value);
 }
 
