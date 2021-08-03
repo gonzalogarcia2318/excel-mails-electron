@@ -1,8 +1,8 @@
-import { Shipment } from './shipment.js';
+import { Shipment } from '../model/shipment.js';
 
-const XLSX = require('xlsx');
 const electron = require('electron').remote;
 const ipcRenderer = require('electron').ipcRenderer;
+const XLSX = require('xlsx');
 const bootstrap = require('bootstrap');
 
 const selectFileBtn = document.getElementById('selectFileBtn');
@@ -217,3 +217,16 @@ function showErorr(errorMessage) {
     const toast = new bootstrap.Toast(errorToastElement, { delay: 5000, animation: true })
     toast.show();
 }
+
+
+// PRUEBAS PARA PERSISTIR DATOS
+function addToStorage() {
+    let message = document.getElementById('nameInput').value;
+    ipcRenderer.send('edit-email-message', message);
+}
+
+function viewStorage() {
+    ipcRenderer.send('get-email-message');
+}
+
+

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración</title>
+
+    <link rel="stylesheet" href="../../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../node_modules/bootstrap-icons/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="../styles.css">
+
+    <script defer src="config-dialog.js"></script>
+
+</head>
+
+<body>
+
+    <div class="container ps-4 pe-4">
+        <div class="row divider-bottom">
+            <h4 class="ps-0">Configuración</h4>
+        </div>
+
+        <div class="mt-4">
+            <label for="emailMessageTextarea" class="form-label fw-bold fs-5">Contenido del Email</label>
+
+            <div class="mt-2 alert alert-primary">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Para reemplazar el nombre de usuario y el link, usar: ${nombre} y ${link}
+            </div>
+
+            <textarea class="form-control" id="emailMessageTextarea" rows="7"></textarea>
+        </div>
+
+        <div class="mt-4 alert alert-danger d-none fade-row-in" id="errorMessage" role="alert">Error</div>
+
+        <div class="mt-4 alert alert-success d-none fade-row-in" id="successMessage" role="alert">Success</div>
+
+        <div class="row mt-4 justify-content-center">
+            <button class="btn btn-primary w-50 mb-4" id="saveConfig">Guardar</button>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
