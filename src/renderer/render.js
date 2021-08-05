@@ -5,21 +5,35 @@ const ipcRenderer = require('electron').ipcRenderer;
 const XLSX = require('xlsx');
 const bootstrap = require('bootstrap');
 
+// Elements
 const selectFileBtn = document.getElementById('selectFileBtn');
 const processBtn = document.getElementById('processBtn');
 const addUserEntryBtn = document.getElementById('addUserEntry');
 const fileNameLabel = document.getElementById('fileName');
 const userNameInput = document.getElementById('nameInput');
+const userNicknameInput = document.getElementById('nicknameInput');
 
 
+// Event listeners
 selectFileBtn.addEventListener('click', handleSelectBtn);
 processBtn.addEventListener('click', processData);
 addUserEntryBtn.addEventListener('click', onAddUserEntryClick);
-userNameInput.addEventListener('keypress', (event) => {
+userNameInput.addEventListener('keydown', (event) => {
+    if (event.key == 'Enter') {
+        onAddUserEntryClick();
+    }
+    if (event.key == 'Tab') {
+        fillNickname();
+    }
+});
+
+userNicknameInput.addEventListener('keydown', (event) => {
     if (event.key == 'Enter') {
         onAddUserEntryClick();
     }
 });
+
+userNicknameInput.addEventListener('focus', fillNickname);
 
 ipcRenderer.on('reset-values', resetValues);
 
@@ -75,20 +89,20 @@ function processData() {
         .forEach(buyerData => {
             let shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
             if (shipment != null) {
-                buyerData.row.cells[2].className = 'fw-bold';
-                buyerData.row.cells[2].innerHTML = shipment.weliveryId;
-                buyerData.row.cells[3].appendChild(createCopyTextButton(shipment, buyerData.row));
-                buyerData.row.cells[3].appendChild(createDeleteRowButton(buyerData))
+                buyerData.row.cells[3].className = 'fw-bold';
+                buyerData.row.cells[3].innerHTML = shipment.weliveryId;
+                buyerData.row.cells[4].appendChild(createCopyTextButton(shipment, buyerData));
+                buyerData.row.cells[4].appendChild(createDeleteRowButton(buyerData))
 
                 notifyShipment(shipment, buyerData.userEmail);
 
                 buyerData.processed = true;
             } else {
-                if (buyerData.row.cells[3].firstChild == null) { // If button wasn't added before
+                if (buyerData.row.cells[4].firstChild == null) { // If button wasn't added before
                     buyerData.row.classList.remove('fade-row-in');
-                    buyerData.row.cells[2].className = 'fw-bold text-danger';
-                    buyerData.row.cells[2].innerHTML = 'No se encontró el ID';
-                    buyerData.row.cells[3].appendChild(createDeleteRowButton(buyerData))
+                    buyerData.row.cells[3].className = 'fw-bold text-danger';
+                    buyerData.row.cells[3].innerHTML = 'No se encontró';
+                    buyerData.row.cells[4].appendChild(createDeleteRowButton(buyerData))
                 }
             }
         })
@@ -101,6 +115,7 @@ function onAddUserEntryClick() {
 
 function addUserEntry(showError) {
     const userNameInput = document.getElementById('nameInput');
+    const userNicknameInput = document.getElementById('nicknameInput');
     const userEmailInput = document.getElementById('emailInput');
     //
     if (!validateUserEntry(userNameInput.value, showError)) {
@@ -111,12 +126,14 @@ function addUserEntry(showError) {
     let row = table.insertRow();
     row.classList.add('fade-row-in');
     row.insertCell(0).innerHTML = userNameInput.value;
-    row.insertCell(1).innerHTML = userEmailInput.value;
-    row.insertCell(2).innerHTML = "-";
-    row.insertCell(3);
+    row.insertCell(1).innerHTML = userNicknameInput.value;
+    row.insertCell(2).innerHTML = userEmailInput.value;
+    row.insertCell(3).innerHTML = "-";
+    row.insertCell(4);
     //
-    buyersData.push({ userName: userNameInput.value, userEmail: userEmailInput.value, row: row, processed: false });
+    buyersData.push({ userName: userNameInput.value, userNickname: userNicknameInput.value, userEmail: userEmailInput.value, row: row, processed: false });
     userNameInput.value = null;
+    userNicknameInput.value = null;
     userEmailInput.value = null;
 }
 
@@ -136,7 +153,7 @@ function validateUserEntry(userNameInput, showError) {
     return true;
 }
 
-function createCopyTextButton(shipment, rowElement) {
+function createCopyTextButton(shipment, buyerData) {
     let copyTextBtn = document.createElement('button');
     copyTextBtn.className = 'btn';
     let icon = document.createElement('i');
@@ -151,12 +168,12 @@ function createCopyTextButton(shipment, rowElement) {
     // Function to copy text into clipboard
     copyTextBtn.addEventListener('click', function () {
         const element = document.createElement('textarea');
-        element.value = generateEmailMessage(shipment);
+        element.value = generateEmailMessage(shipment, buyerData.userNickname);
         document.body.appendChild(element);
         element.select();
         document.execCommand('copy');
         document.body.removeChild(element);
-        rowElement.classList.add('table-success');
+        buyerData.row.classList.add('table-success');
         showNotificationToast("Copiado!");
     })
     return copyTextBtn;
@@ -218,9 +235,9 @@ function getEmailMessage() {
 }
 
 // At the moment I am only replacing the name and the link. Maybe in a future, this could use every shipment attribute.
-function generateEmailMessage(shipment) {
+function generateEmailMessage(shipment, userNickname) {
     let emailMessage = getEmailMessage();
-    emailMessage = emailMessage.replaceAll('${nombre}', shipment.userName);
+    emailMessage = emailMessage.replaceAll('${nombre}', userNickname ? userNickname : shipment.userName);
     emailMessage = emailMessage.replaceAll('${link}', `https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}`);
     return emailMessage;
 }
@@ -230,4 +247,14 @@ function showNotificationToast(message) {
     document.getElementById('notificationToastMessage').innerHTML = message;
     const toast = new bootstrap.Toast(notificationToastElement, { delay: 2000, animation: true })
     toast.show();
+}
+
+function fillNickname() {
+    if (!userNicknameInput.value) {
+        userNicknameInput.value = capitalize(userNameInput.value.split(' ')[0]);
+    }
+}
+
+function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }
