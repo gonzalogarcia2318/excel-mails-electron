@@ -56,3 +56,8 @@ body {
   border-bottom: 1px solid #dee2e6;
   padding-bottom: 0.5em;
 }
+
+.notification-toast {
+  width: auto;
+  padding: 0 2em;
+}

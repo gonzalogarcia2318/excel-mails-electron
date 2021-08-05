@@ -40,7 +40,6 @@ async function handleSelectBtn() {
         workbookName = dialogResponse.filePaths[0].split('\\')[dialogResponse.filePaths[0].split('\\').length - 1]
         fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
         parseWorkbook()
-        processBtn.disabled = false;
     }
 }
 
@@ -78,7 +77,7 @@ function processData() {
             if (shipment != null) {
                 buyerData.row.cells[2].className = 'fw-bold';
                 buyerData.row.cells[2].innerHTML = shipment.weliveryId;
-                buyerData.row.cells[3].appendChild(createCopyTextButton(shipment));
+                buyerData.row.cells[3].appendChild(createCopyTextButton(shipment, buyerData.row));
                 buyerData.row.cells[3].appendChild(createDeleteRowButton(buyerData))
 
                 notifyShipment(shipment, buyerData.userEmail);
@@ -137,7 +136,7 @@ function validateUserEntry(userNameInput, showError) {
     return true;
 }
 
-function createCopyTextButton(shipment) {
+function createCopyTextButton(shipment, rowElement) {
     let copyTextBtn = document.createElement('button');
     copyTextBtn.className = 'btn';
     let icon = document.createElement('i');
@@ -157,6 +156,8 @@ function createCopyTextButton(shipment) {
         element.select();
         document.execCommand('copy');
         document.body.removeChild(element);
+        rowElement.classList.add('table-success');
+        showNotificationToast("Copiado!");
     })
     return copyTextBtn;
 }
@@ -198,7 +199,6 @@ function userIsAlreadyEntered(userNameInput) {
 function resetValues() {
     workbook = null;
     workbookName = "";
-    processBtn.disabled = true;
     fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
     shipments = [];
     buyersData.forEach(buyerData => buyerData.row.remove());
@@ -223,4 +223,11 @@ function generateEmailMessage(shipment) {
     emailMessage = emailMessage.replaceAll('${nombre}', shipment.userName);
     emailMessage = emailMessage.replaceAll('${link}', `https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}`);
     return emailMessage;
+}
+
+function showNotificationToast(message) {
+    const notificationToastElement = document.getElementById('notificationToast');
+    document.getElementById('notificationToastMessage').innerHTML = message;
+    const toast = new bootstrap.Toast(notificationToastElement, { delay: 2000, animation: true })
+    toast.show();
 }

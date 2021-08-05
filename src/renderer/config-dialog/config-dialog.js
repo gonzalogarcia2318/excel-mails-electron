@@ -9,7 +9,7 @@ const successElement = document.getElementById('successMessage');
 saveConfigBtn.addEventListener('click', saveConfig);
 
 ipcRenderer.on('email-message', (event, message) => {
-    emailMessageInput.innerHTML = message;
+    emailMessageInput.textContent = message;
 })
 
 function saveConfig() {
