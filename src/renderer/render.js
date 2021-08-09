@@ -92,18 +92,14 @@ function processData() {
                 buyerData.row.cells[3].className = 'fw-bold';
                 buyerData.row.cells[3].innerHTML = shipment.weliveryId;
                 buyerData.row.cells[4].appendChild(createCopyTextButton(shipment, buyerData));
-                buyerData.row.cells[4].appendChild(createDeleteRowButton(buyerData))
 
                 notifyShipment(shipment, buyerData.userEmail);
 
                 buyerData.processed = true;
             } else {
-                if (buyerData.row.cells[4].firstChild == null) { // If button wasn't added before
-                    buyerData.row.classList.remove('fade-row-in');
-                    buyerData.row.cells[3].className = 'fw-bold text-danger';
-                    buyerData.row.cells[3].innerHTML = 'No se encontró';
-                    buyerData.row.cells[4].appendChild(createDeleteRowButton(buyerData))
-                }
+                buyerData.row.classList.remove('fade-row-in');
+                buyerData.row.cells[3].className = 'fw-bold text-danger';
+                buyerData.row.cells[3].innerHTML = 'No se encontró';
             }
         })
 }
@@ -112,7 +108,7 @@ function processData() {
 function onAddUserEntryClick() {
     addUserEntry(true);
 }
-
+// TODO: RETURN FOCUS TO NAME INPUT
 function addUserEntry(showError) {
     const userNameInput = document.getElementById('nameInput');
     const userNicknameInput = document.getElementById('nicknameInput');
@@ -122,19 +118,26 @@ function addUserEntry(showError) {
         return;
     }
     //
+    if (!userNicknameInput.value) {
+        fillNickname();
+    }
+    //
+    const buyerData = { userName: userNameInput.value, userNickname: userNicknameInput.value, userEmail: userEmailInput.value, row: null, processed: false };
     const table = document.getElementById('usersTable');
     let row = table.insertRow();
+    buyerData.row = row;
     row.classList.add('fade-row-in');
     row.insertCell(0).innerHTML = userNameInput.value;
     row.insertCell(1).innerHTML = userNicknameInput.value;
     row.insertCell(2).innerHTML = userEmailInput.value;
     row.insertCell(3).innerHTML = "-";
-    row.insertCell(4);
+    row.insertCell(4).appendChild(createDeleteRowButton(buyerData));
     //
-    buyersData.push({ userName: userNameInput.value, userNickname: userNicknameInput.value, userEmail: userEmailInput.value, row: row, processed: false });
+    buyersData.push(buyerData);
     userNameInput.value = null;
     userNicknameInput.value = null;
     userEmailInput.value = null;
+    userNameInput.focus();
 }
 
 function validateUserEntry(userNameInput, showError) {
