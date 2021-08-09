@@ -108,7 +108,7 @@ function processData() {
 function onAddUserEntryClick() {
     addUserEntry(true);
 }
-// TODO: RETURN FOCUS TO NAME INPUT
+
 function addUserEntry(showError) {
     const userNameInput = document.getElementById('nameInput');
     const userNicknameInput = document.getElementById('nicknameInput');
