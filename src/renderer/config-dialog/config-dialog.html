@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="../styles.css">
 
-    <script defer src="config-dialog.js"></script>
+    <script type="module" src="config-dialog.js"></script>
 
 </head>
 
@@ -24,14 +24,24 @@
         </div>
 
         <div class="mt-4">
-            <label for="emailMessageTextarea" class="form-label fw-bold fs-5">Contenido del Email</label>
 
             <div class="mt-2 alert alert-primary">
                 <i class="bi bi-exclamation-triangle me-2"></i>
-                Para reemplazar el nombre de usuario y el link, usar: ${nombre} y ${link}
+                Para reemplazar el nombre de usuario y el tracking ID, usar: ${nombre} y ${trackingId}
             </div>
 
-            <textarea class="form-control" id="emailMessageTextarea" rows="7"></textarea>
+            <div>
+                <label for="weliveryEmailMessageTextarea" class="form-label fw-bold fs-5">Contenido del Email -
+                    Welivery</label>
+
+                <textarea class="form-control" id="weliveryEmailMessageTextarea" rows="7"></textarea>
+            </div>
+
+            <div class="mt-4">
+                <label for="ocaEmailMessageTextarea" class="form-label fw-bold fs-5">Contenido del Email - OCA</label>
+
+                <textarea class="form-control" id="ocaEmailMessageTextarea" rows="7"></textarea>
+            </div>
         </div>
 
         <div class="mt-4 alert alert-danger d-none fade-row-in" id="errorMessage" role="alert">Error</div>

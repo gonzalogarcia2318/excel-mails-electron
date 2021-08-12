@@ -69,34 +69,37 @@ app.on('window-all-closed', () => {
 const storage = new Storage();
 
 ipcMain.on('get-email-message', (event, platform) => {
-  console.log(platform);
   event.returnValue = getEmailMessage(platform);
 });
 
-ipcMain.on('edit-email-message', (event, value) => {
-  editEmailMessage(value);
+ipcMain.on('edit-email-messages', (event, emailMessages) => {
+  emailMessages.forEach(emailMessage => {
+    editEmailMessage(emailMessage.platform, emailMessage.value);
+  })
 });
 
 
 function getEmailMessage(platform) {
-  console.log(platform)
-  console.log("platform === 'WELIVERY'", platform === 'WELIVERY')
-  if (platform === 'WELIVERY') {
-    return storage.get('weliveryEmailMessage');
-  } else {
-    return storage.get('ocaEmailMessage');
-  }
+  return storage.get(getKeyByPlatform(platform));
 }
 
-function editEmailMessage(value) {
-  storage.set('emailMessage', value);
+function editEmailMessage(platform, value) {
+  return storage.set(getKeyByPlatform(platform), value);
+}
+
+function getKeyByPlatform(platform) {
+  if (platform === 'WELIVERY') {
+    return 'weliveryEmailMessage';
+  } else {
+    return 'ocaEmailMessage';
+  }
 }
 
 
 function showConfigurationWindow() {
   const configWindow = new BrowserWindow({
     width: 800,
-    height: 500,
+    height: 700,
     modal: true,
     useContentSize: true,
     title: "Configuracion",
@@ -108,10 +111,14 @@ function showConfigurationWindow() {
   })
 
   configWindow.setMenu(null);
-  // configWindow.webContents.openDevTools();
+  configWindow.webContents.openDevTools();
+
+  const emailsMessages = [];
+  emailsMessages.push({ platform: 'WELIVERY', value: getEmailMessage('WELIVERY') });
+  emailsMessages.push({ platform: 'OCA', value: getEmailMessage('OCA') });
 
   configWindow.webContents.on('did-finish-load', () => {
-    configWindow.webContents.send('email-message', getEmailMessage());
+    configWindow.webContents.send('email-messages', emailsMessages);
   })
 
   configWindow.loadFile(path.join(__dirname, "../renderer/config-dialog/config-dialog.html"));

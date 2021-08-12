@@ -70,7 +70,7 @@ function parseWorkbook(filePath) {
     let parsedWorksheet;
 
     // If first row has 'Welivery', is a Welivery sheet.
-    if (worksheet['A1'].v === 'Welivery') {
+    if (worksheet['A1'] != null && worksheet['A1'].v === 'Welivery') {
         parsedWorksheet = new WeliveryWorksheet(worksheet);
     } else {
         parsedWorksheet = new OcaWorksheet(worksheet);
