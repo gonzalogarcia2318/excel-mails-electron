@@ -61,3 +61,7 @@ body {
   width: auto;
   padding: 0 2em;
 }
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}

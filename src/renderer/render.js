@@ -1,4 +1,6 @@
 import { Shipment } from '../model/shipment.js';
+import { WeliveryWorksheet } from './worksheets/welivery-worksheet.js';
+import { OcaWorksheet } from './worksheets/oca-worksheet.js';
 
 const electron = require('electron').remote;
 const ipcRenderer = require('electron').ipcRenderer;
@@ -38,39 +40,44 @@ userNicknameInput.addEventListener('focus', fillNickname);
 ipcRenderer.on('reset-values', resetValues);
 
 let workbook;
-let workbookName;
+let workbookNames = [];
 let shipments = [];
 let buyersData = [];
 
 async function handleSelectBtn() {
     const dialogResponse = await electron.dialog.showOpenDialog({
-        title: 'Selecciona un archivo',
-        filters: [{ name: 'Spreadsheets', extensions: ['xlsx'] }],
-        properties: ['openFile']
+        title: 'Seleccionar planillas',
+        filters: [{ name: 'Spreadsheets', extensions: ['xlsx', 'xltx'] }],
+        properties: ['openFile', 'multiSelections']
     });
     if (dialogResponse.filePaths.length > 0) {
-        console.log("Process file", dialogResponse.filePaths[0]);
-        workbook = XLSX.readFile(dialogResponse.filePaths[0]);
-        workbookName = dialogResponse.filePaths[0].split('\\')[dialogResponse.filePaths[0].split('\\').length - 1]
-        fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
-        parseWorkbook()
+        dialogResponse.filePaths.forEach(filePath => {
+            parseWorkbook(filePath)
+        });
     }
 }
 
-function parseWorkbook() {
+function parseWorkbook(filePath) {
+    console.log("Process file", filePath);
+
+    workbook = XLSX.readFile(filePath);
+
+    workbookNames.push(filePath.split('\\')[filePath.split('\\').length - 1]);
+    fileNameLabel.innerHTML = `Planillas: ${workbookNames.join(', ')}`;
+    //
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    // Range: 1 to skip first row of the worksheet
-    const worksheetJson = XLSX.utils.sheet_to_json(worksheet, { range: 1 });
+    let parsedWorksheet;
 
-    for (let row in worksheetJson) {
-        const data = worksheetJson[row];
-        const date = data['Fecha creación'].split(/\s+/)[1]; // Split considering all spaces
-        if (data['Nombre y Apellido']) { // If name is not empty or null, add to array
-            shipments.push(new Shipment(data['Nombre y Apellido'], data['WeliveryID'], data['Status'], date));
-        }
-
+    // If first row has 'Welivery', is a Welivery sheet.
+    if (worksheet['A1'].v === 'Welivery') {
+        parsedWorksheet = new WeliveryWorksheet(worksheet);
+    } else {
+        parsedWorksheet = new OcaWorksheet(worksheet);
     }
+    shipments.push(...parsedWorksheet.getShipments());
+
+    console.log("Shipments", shipments);
 };
 
 function processData() {
@@ -90,7 +97,7 @@ function processData() {
             let shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
             if (shipment != null) {
                 buyerData.row.cells[3].className = 'fw-bold';
-                buyerData.row.cells[3].innerHTML = shipment.weliveryId;
+                buyerData.row.cells[3].innerHTML = shipment.trackingId;
                 buyerData.row.cells[4].appendChild(createCopyTextButton(shipment, buyerData));
 
                 notifyShipment(shipment, buyerData.userEmail);
@@ -126,7 +133,7 @@ function addUserEntry(showError) {
     const table = document.getElementById('usersTable');
     let row = table.insertRow();
     buyerData.row = row;
-    row.classList.add('fade-row-in');
+    row.classList.add('fade-row-in', 'whitespace-nowrap');
     row.insertCell(0).innerHTML = userNameInput.value;
     row.insertCell(1).innerHTML = userNicknameInput.value;
     row.insertCell(2).innerHTML = userEmailInput.value;
@@ -208,7 +215,7 @@ function createDeleteRowButton(buyerData) {
 
 
 function notifyShipment(shipment, email) {
-    console.log(`Notify shipment of ${shipment.userName} with WeliveryID: ${shipment.weliveryId} to ${email}`)
+    console.log(`Notify shipment of ${shipment.userName} with tracking ID: ${shipment.trackingId} to ${email}`)
 }
 
 
@@ -218,8 +225,8 @@ function userIsAlreadyEntered(userNameInput) {
 
 function resetValues() {
     workbook = null;
-    workbookName = "";
-    fileNameLabel.innerHTML = `Planilla: ${workbookName}`;
+    workbookNames = [];
+    fileNameLabel.innerHTML = `Planillas: ${workbookName}`;
     shipments = [];
     buyersData.forEach(buyerData => buyerData.row.remove());
     buyersData = [];
@@ -233,15 +240,15 @@ function showErorr(errorMessage) {
 }
 
 
-function getEmailMessage() {
-    return ipcRenderer.sendSync('get-email-message');
+function getEmailMessageByPlatform(platform) {
+    return ipcRenderer.sendSync('get-email-message', platform);
 }
 
-// At the moment I am only replacing the name and the link. Maybe in a future, this could use every shipment attribute.
+// At the moment I am only replacing the name and the tracking ID. Maybe in a future, this could use every shipment attribute.
 function generateEmailMessage(shipment, userNickname) {
-    let emailMessage = getEmailMessage();
+    let emailMessage = getEmailMessageByPlatform(shipment.platform);
     emailMessage = emailMessage.replaceAll('${nombre}', userNickname ? userNickname : shipment.userName);
-    emailMessage = emailMessage.replaceAll('${link}', `https://welivery.com.ar/tracking/?wid=${shipment.weliveryId}`);
+    emailMessage = emailMessage.replaceAll('${trackingId}', shipment.trackingId);
     return emailMessage;
 }
 

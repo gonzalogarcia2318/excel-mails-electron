@@ -31,12 +31,17 @@ class Storage {
 }
 
 const defaults = {
-    emailMessage: 'DEFAULTHola, ${nombre}\n\n'
-        + 'Ya despachamos tu pedido. Podes seguirlo desde este link: ${link}\n'
+    weliveryEmailMessage: 'Hola, ${nombre}\n\n'
+        + 'Ya despachamos tu pedido. Podes seguirlo desde este link: https://welivery.com.ar/tracking/?wid=${trackingId}\n'
         + 'Te llegará entre esta tarde y mañana.\n\n'
         + 'Cualquier cosa, podes contactarte con soporte@welivery.com.ar\n\n'
         + 'Saludos,\n'
-        + 'Agustina'
+        + 'Agustina',
+    ocaEmailMessage: 'Hola, ${nombre}\n\n'
+    + 'Ya despachamos tu pedido. El numero de seguimiento es: ${trackingId}\n'
+    + 'Te llegará entre esta tarde y mañana.\n\n'
+    + 'Saludos,\n'
+    + 'Agustina',
 };
 
 module.exports = Storage;

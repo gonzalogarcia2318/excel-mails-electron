@@ -1,10 +1,10 @@
 export class Shipment {
 
-    constructor(userName, weliveryId, status, date) {
+    constructor(userName, trackingId, platform, status) {
         this.userName = userName;
-        this.weliveryId = weliveryId;
+        this.trackingId = trackingId;
+        this.platform = platform;
         this.status = status;
-        this.date = date;
     }
 
 
@@ -22,3 +22,8 @@ export class Shipment {
     }
 
 }
+
+export const PlatformTypes = {
+    WELIVERY: 'WELIVERY',
+    OCA: 'OCA'
+};

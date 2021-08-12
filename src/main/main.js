@@ -1,6 +1,5 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
-const fs = require('fs');
 const Storage = require('../storage/storage.js');
 
 if (require('electron-squirrel-startup')) {
@@ -26,8 +25,6 @@ app.on('ready', () => {
 
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 
-  mainWindow.webContents.openDevTools();
-
   // Menu
   const templateMenu = [
     {
@@ -46,6 +43,13 @@ app.on('ready', () => {
           }
         }
       ]
+    },
+    {
+      label: 'Dev Tools',
+      accelerator: 'F12',
+      click() {
+        mainWindow.webContents.openDevTools();
+      }
     }
   ];
 
@@ -64,8 +68,9 @@ app.on('window-all-closed', () => {
 // Store and read data
 const storage = new Storage();
 
-ipcMain.on('get-email-message', (event, args) => {
-  event.returnValue = getEmailMessage();
+ipcMain.on('get-email-message', (event, platform) => {
+  console.log(platform);
+  event.returnValue = getEmailMessage(platform);
 });
 
 ipcMain.on('edit-email-message', (event, value) => {
@@ -73,8 +78,14 @@ ipcMain.on('edit-email-message', (event, value) => {
 });
 
 
-function getEmailMessage() {
-  return storage.get('emailMessage');
+function getEmailMessage(platform) {
+  console.log(platform)
+  console.log("platform === 'WELIVERY'", platform === 'WELIVERY')
+  if (platform === 'WELIVERY') {
+    return storage.get('weliveryEmailMessage');
+  } else {
+    return storage.get('ocaEmailMessage');
+  }
 }
 
 function editEmailMessage(value) {
@@ -97,7 +108,7 @@ function showConfigurationWindow() {
   })
 
   configWindow.setMenu(null);
-  configWindow.webContents.openDevTools();
+  // configWindow.webContents.openDevTools();
 
   configWindow.webContents.on('did-finish-load', () => {
     configWindow.webContents.send('email-message', getEmailMessage());
