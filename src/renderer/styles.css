@@ -65,3 +65,7 @@ body {
 .whitespace-nowrap {
   white-space: nowrap;
 }
+
+.actions-padding{
+  padding: .375rem .75rem;
+}

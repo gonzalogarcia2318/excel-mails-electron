@@ -21,6 +21,14 @@ export class Shipment {
         return string.trim().replace(/\s+/g, " ");
     }
 
+    setEmailMessage(emailMesssage){
+        this.emailMessage = emailMesssage;
+    }
+
+    getEmailMessage(){
+        return this.emailMessage;
+    }
+
 }
 
 export const PlatformTypes = {

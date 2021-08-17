@@ -25,7 +25,16 @@
     <div class="row align-items-center justify-content-between divider-bottom">
       <h4 class="col-auto ps-0" id="fileName">Planillas:</h4>
       <button class="btn btn-primary col-auto" id="selectFileBtn">Seleccionar Planillas</button>
+    </div>
 
+    <div class="row align-items-center mt-2 divider-bottom">
+      <span class="col-auto ps-0">Enviar desde:</span>
+      <div class="col-md">
+        <input type="text" class="form-control" id="emailSender" placeholder="Email">
+      </div>
+      <div class="col-md pe-0">
+        <input type="password" class="form-control" id="emailPassword" placeholder="Password">
+      </div>
     </div>
 
     <div class="row mt-4">
@@ -34,7 +43,7 @@
           <th>Nombre</th>
           <th>Apodo</th>
           <th>Email</th>
-          <th>ID de Seguimiento</th>
+          <th class="whitespace-nowrap">ID de Seguimiento</th>
           <!-- <th>Estado</th> -->
           <th></th>
         </thead>
@@ -47,7 +56,7 @@
               <input type="text" class="form-control" id="nicknameInput" placeholder="Apodo">
             </td>
             <td>
-              <input type="text" class="form-control" id="emailInput" placeholder="Email" disabled>
+              <input type="text" class="form-control" id="emailInput" placeholder="Email">
             </td>
             <td>-</td>
             <td>
