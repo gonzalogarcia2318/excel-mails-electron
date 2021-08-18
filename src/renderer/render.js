@@ -118,6 +118,7 @@ function processData() {
             const shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
             if (shipment != null) {
                 shipment.setEmailMessage(generateEmailMessage(shipment, buyerData.userNickname));
+                shipment.setEmailSubject(userConfig.emailMessageSubject);
                 buyerData.row.classList.add('table-warning')
                 buyerData.row.cells[3].className = 'fw-bold';
                 buyerData.row.cells[3].innerHTML = shipment.trackingId;
@@ -295,7 +296,7 @@ function notifyShipment(shipment, buyerData) {
     buyerData.row.cells[4].appendChild(loadingSpinner);
 
     const transporter = nodemailer.createTransport({
-        service: 'Gmail',
+        service: 'Zoho',
         auth: {
             user: emailSenderInput.value,
             pass: emailPassword.value
@@ -305,7 +306,7 @@ function notifyShipment(shipment, buyerData) {
     const mailOptions = {
         from: emailSenderInput.value,
         to: buyerData.userEmail,
-        subject: 'Sending email from electron app',
+        subject: shipment.getEmailSubject(),
         text: shipment.getEmailMessage()
     };
 
@@ -313,6 +314,7 @@ function notifyShipment(shipment, buyerData) {
         buyerData.row.classList.remove('table-warning');
         buyerData.row.cells[4].removeChild(loadingSpinner);
         if (error) {
+            console.error(error);
             buyerData.row.classList.add('table-danger');
             buyerData.row.cells[4].appendChild(createErrorIcon('Error al enviar'));
         } else {

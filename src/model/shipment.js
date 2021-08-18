@@ -29,6 +29,14 @@ export class Shipment {
         return this.emailMessage;
     }
 
+    setEmailSubject(emailSubject){
+        this.emailSubject = emailSubject;
+    }
+
+    getEmailSubject(){
+        return this.emailSubject;
+    }
+
 }
 
 export const PlatformTypes = {
