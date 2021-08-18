@@ -1,4 +1,4 @@
-import { Shipment } from '../model/shipment.js';
+import { PlatformTypes, Shipment } from '../model/shipment.js';
 import { WeliveryWorksheet } from './worksheets/welivery-worksheet.js';
 import { OcaWorksheet } from './worksheets/oca-worksheet.js';
 
@@ -47,6 +47,13 @@ userEmailInput.addEventListener('keydown', (event) => {
 
 userNicknameInput.addEventListener('focus', fillNickname);
 ipcRenderer.on('reset-values', resetValues);
+
+
+let userConfig = { weliveryEmailMessage: null, ocaEmailMessage: null, emailSender: null, emailMessageSubject: null }
+ipcRenderer.on('user-config', (event, config) => {
+    userConfig = config;
+    emailSenderInput.value = userConfig.emailSender;
+});
 
 
 let workbook;
@@ -250,7 +257,11 @@ function showErorr(errorMessage) {
 
 
 function getEmailMessageByPlatform(platform) {
-    return ipcRenderer.sendSync('get-email-message', platform);
+    if (platform === PlatformTypes.WELIVERY) {
+        return userConfig.weliveryEmailMessage;
+    } else {
+        return userConfig.ocaEmailMessage;
+    }
 }
 
 // At the moment I am only replacing the name and the tracking ID. Maybe in a future, this could use every shipment attribute.

@@ -28,6 +28,15 @@ class Storage {
             return this.data;
         }
     }
+
+    getAll(){
+        return this.data;
+    }
+
+    setAll(data){
+        this.data = data;
+        fs.writeFileSync(this.userConfigPath, JSON.stringify(this.data));
+    }
 }
 
 const defaults = {
@@ -42,6 +51,8 @@ const defaults = {
     + 'Te llegará entre esta tarde y mañana.\n\n'
     + 'Saludos,\n'
     + 'Agustina',
+    emailSender: 'mail@mail.com',
+    emailMessageSubject: 'Asunto del mail'
 };
 
 module.exports = Storage;

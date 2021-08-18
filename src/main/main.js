@@ -6,9 +6,10 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+let mainWindow;
 
 app.on('ready', () => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1000,
     height: 600,
     resizable: true,
@@ -21,6 +22,10 @@ app.on('ready', () => {
       contextIsolation: false,
       enableRemoteModule: true,
     }
+  })
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('user-config', storage.getAll());
   })
 
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
@@ -65,35 +70,18 @@ app.on('window-all-closed', () => {
   }
 });
 
+
 // Store and read data
 const storage = new Storage();
 
-ipcMain.on('get-email-message', (event, platform) => {
-  event.returnValue = getEmailMessage(platform);
+ipcMain.on('get-user-config', (event) => {
+  event.returnValue = storage.getAll();
 });
 
-ipcMain.on('edit-email-messages', (event, emailMessages) => {
-  emailMessages.forEach(emailMessage => {
-    editEmailMessage(emailMessage.platform, emailMessage.value);
-  })
-});
-
-
-function getEmailMessage(platform) {
-  return storage.get(getKeyByPlatform(platform));
-}
-
-function editEmailMessage(platform, value) {
-  return storage.set(getKeyByPlatform(platform), value);
-}
-
-function getKeyByPlatform(platform) {
-  if (platform === 'WELIVERY') {
-    return 'weliveryEmailMessage';
-  } else {
-    return 'ocaEmailMessage';
-  }
-}
+ipcMain.on('save-user-config', (event, userConfig) => {
+  storage.setAll(userConfig);
+  mainWindow.webContents.send('user-config', storage.getAll());
+})
 
 
 function showConfigurationWindow() {
@@ -113,12 +101,8 @@ function showConfigurationWindow() {
   configWindow.setMenu(null);
   configWindow.webContents.openDevTools();
 
-  const emailsMessages = [];
-  emailsMessages.push({ platform: 'WELIVERY', value: getEmailMessage('WELIVERY') });
-  emailsMessages.push({ platform: 'OCA', value: getEmailMessage('OCA') });
-
   configWindow.webContents.on('did-finish-load', () => {
-    configWindow.webContents.send('email-messages', emailsMessages);
+    configWindow.webContents.send('user-config', storage.getAll());
   })
 
   configWindow.loadFile(path.join(__dirname, "../renderer/config-dialog/config-dialog.html"));

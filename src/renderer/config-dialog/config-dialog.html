@@ -25,12 +25,27 @@
 
         <div class="mt-4">
 
-            <div class="mt-2 alert alert-primary">
+            <div>
+                <div class="row align-items-center mt-4">
+                    <span class="col-auto">Enviar mail desde:</span>
+                    <div class="col">
+                      <input type="text" class="form-control" id="emailSender" placeholder="Email">
+                    </div>
+                  </div>
+            </div>
+
+            <div class="mt-4 alert alert-primary">
                 <i class="bi bi-exclamation-triangle me-2"></i>
                 Para reemplazar el nombre de usuario y el tracking ID, usar: ${nombre} y ${trackingId}
             </div>
 
             <div>
+                <label for="emailMessageSubjectInput" class="form-label fw-bold fs-5">Asunto del Email</label>
+
+                <input type="text" class="form-control" id="emailMessageSubjectInput" placeholder="Asunto">
+            </div>
+
+            <div class="mt-4">
                 <label for="weliveryEmailMessageTextarea" class="form-label fw-bold fs-5">Contenido del Email -
                     Welivery</label>
 
