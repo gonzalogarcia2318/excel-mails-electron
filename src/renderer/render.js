@@ -49,7 +49,7 @@ userNicknameInput.addEventListener('focus', fillNickname);
 ipcRenderer.on('reset-values', resetValues);
 
 
-let userConfig = { weliveryEmailMessage: null, ocaEmailMessage: null, emailSender: null, emailMessageSubject: null }
+let userConfig = { weliveryEmailMessage: null, ocaEmailMessage: null, emailSender: null, senderName: null, emailMessageSubject: null }
 ipcRenderer.on('user-config', (event, config) => {
     userConfig = config;
     emailSenderInput.value = userConfig.emailSender;
@@ -118,7 +118,7 @@ function processData() {
             const shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName))
             if (shipment != null) {
                 shipment.setEmailMessage(generateEmailMessage(shipment, buyerData.userNickname));
-                shipment.setEmailSubject(userConfig.emailMessageSubject);
+                shipment.setEmailSubject(getEmailSubjectByPlatform(shipment.platform));
                 buyerData.row.classList.add('table-warning')
                 buyerData.row.cells[3].className = 'fw-bold';
                 buyerData.row.cells[3].innerHTML = shipment.trackingId;
@@ -265,6 +265,14 @@ function getEmailMessageByPlatform(platform) {
     }
 }
 
+function getEmailSubjectByPlatform(platform) {
+    if (platform === PlatformTypes.WELIVERY) {
+        return userConfig.weliveryEmailMessageSubject;
+    } else {
+        return userConfig.ocaEmailMessageSubject;
+    }
+}
+
 // At the moment I am only replacing the name and the tracking ID. Maybe in a future, this could use every shipment attribute.
 function generateEmailMessage(shipment, userNickname) {
     let emailMessage = getEmailMessageByPlatform(shipment.platform);
@@ -296,7 +304,7 @@ function notifyShipment(shipment, buyerData) {
     buyerData.row.cells[4].appendChild(loadingSpinner);
 
     const transporter = nodemailer.createTransport({
-        service: 'Zoho',
+        service: 'Gmail',
         auth: {
             user: emailSenderInput.value,
             pass: emailPassword.value
@@ -304,7 +312,7 @@ function notifyShipment(shipment, buyerData) {
     });
 
     const mailOptions = {
-        from: emailSenderInput.value,
+        from: { name: userConfig.senderName, address: emailSenderInput.value },
         to: buyerData.userEmail,
         subject: shipment.getEmailSubject(),
         text: shipment.getEmailMessage()

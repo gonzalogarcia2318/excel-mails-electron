@@ -52,7 +52,9 @@ const defaults = {
     + 'Saludos,\n'
     + 'Agustina',
     emailSender: 'mail@mail.com',
-    emailMessageSubject: 'Asunto del mail'
+    senderName: 'sender',
+    weliveryEmailMessageSubject: 'Asunto del mail - Welivery',
+    ocaEmailMessageSubject: 'Asunto del mail - OCA',
 };
 
 module.exports = Storage;

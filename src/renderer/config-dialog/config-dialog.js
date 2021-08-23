@@ -5,7 +5,9 @@ import { PlatformTypes } from '../../model/shipment.js';
 const weliveryEmailMessageInput = document.getElementById('weliveryEmailMessageTextarea');
 const ocaEmailMessageInput = document.getElementById('ocaEmailMessageTextarea');
 const emailSenderInput = document.getElementById('emailSender');
-const emailMessageSubjectInput = document.getElementById('emailMessageSubjectInput');
+const senderNameInput = document.getElementById('senderName');
+const weliveryEmailMessageSubjectInput = document.getElementById('weliveryEmailMessageSubjectInput');
+const ocaEmailMessageSubjectInput = document.getElementById('ocaEmailMessageSubjectInput');
 const saveConfigBtn = document.getElementById('saveConfig');
 const errorElement = document.getElementById('errorMessage');
 const successElement = document.getElementById('successMessage');
@@ -18,14 +20,16 @@ saveConfigBtn.addEventListener('click', saveConfig);
 ipcRenderer.on('user-config', (event, config) => {
     console.log("config", userConfig);
     userConfig = config;
-    weliveryEmailMessageInput.value = userConfig.weliveryEmailMessage;
-    ocaEmailMessageInput.value = userConfig.ocaEmailMessage;
-    emailSenderInput.value = userConfig.emailSender;
-    emailMessageSubjectInput.value = userConfig.emailMessageSubject;
+    weliveryEmailMessageInput.value = checkNull(userConfig.weliveryEmailMessage);
+    ocaEmailMessageInput.value = checkNull(userConfig.ocaEmailMessage);
+    emailSenderInput.value = checkNull(userConfig.emailSender);
+    senderNameInput.value = checkNull(userConfig.senderName);
+    weliveryEmailMessageSubjectInput.value = checkNull(userConfig.weliveryEmailMessageSubject);
+    ocaEmailMessageSubjectInput.value = checkNull(userConfig.ocaEmailMessageSubject);
 })
 
 function saveConfig() {
-    if (!weliveryEmailMessageInput.value || !ocaEmailMessageInput.value || !emailMessageSubjectInput.value) {
+    if (!weliveryEmailMessageInput.value || !ocaEmailMessageInput.value || !weliveryEmailMessageSubjectInput.value || !ocaEmailMessageSubjectInput.value) {
         errorElement.innerHTML = "Completar los campos del email.";
         errorElement.classList.remove('d-none');
         successElement.classList.add('d-none');
@@ -35,7 +39,9 @@ function saveConfig() {
     userConfig.weliveryEmailMessage = weliveryEmailMessageInput.value;
     userConfig.ocaEmailMessage = ocaEmailMessageInput.value;
     userConfig.emailSender = emailSenderInput.value;
-    userConfig.emailMessageSubject = emailMessageSubjectInput.value;
+    userConfig.senderName = senderNameInput.value;
+    userConfig.weliveryEmailMessageSubject = weliveryEmailMessageSubjectInput.value;
+    userConfig.ocaEmailMessageSubject = ocaEmailMessageSubjectInput.value;
     //
     ipcRenderer.send('save-user-config', userConfig);
     //
@@ -43,9 +49,14 @@ function saveConfig() {
     successElement.innerHTML = "Los datos se actualizaron correctamente!"
     successElement.classList.remove('d-none');
 
-    setTimeout(closeDialog, 4000);
+    setTimeout(closeDialog, 1000);
 }
 
 function closeDialog() {
     remote.getCurrentWindow().close();
+}
+
+
+function checkNull(string) {
+    return string ? string : null;
 }

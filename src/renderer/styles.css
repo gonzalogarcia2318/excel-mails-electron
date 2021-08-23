@@ -57,6 +57,10 @@ body {
   padding-bottom: 0.5em;
 }
 
+.title-border {
+  border-bottom: 1px solid #dee2e6;
+}
+
 .notification-toast {
   width: auto;
   padding: 0 2em;
