@@ -1,5 +1,6 @@
 const XLSX = require('xlsx');
-import { PlatformTypes, Shipment } from '../../model/shipment.js';
+import { PlatformTypes } from '../../types/platform-types.js';
+import { Shipment } from '../../model/shipment.js';
 
 export class OcaWorksheet {
 

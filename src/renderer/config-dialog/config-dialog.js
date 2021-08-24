@@ -1,5 +1,4 @@
 const { eletron, ipcRenderer, remote } = require('electron');
-import { PlatformTypes } from '../../model/shipment.js';
 
 
 const weliveryEmailMessageInput = document.getElementById('weliveryEmailMessageTextarea');

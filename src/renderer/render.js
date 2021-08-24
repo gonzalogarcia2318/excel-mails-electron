@@ -1,4 +1,6 @@
-import { PlatformTypes, Shipment } from '../model/shipment.js';
+import { Shipment } from '../model/shipment.js';
+import { PlatformTypes } from '../types/platform-types.js';
+import { EmailStatus } from '../types/email-status.js';
 import { WeliveryWorksheet } from './worksheets/welivery-worksheet.js';
 import { OcaWorksheet } from './worksheets/oca-worksheet.js';
 
@@ -64,7 +66,7 @@ let buyersData = [];
 async function handleSelectBtn() {
     const dialogResponse = await electron.dialog.showOpenDialog({
         title: 'Seleccionar planillas',
-        filters: [{ name: 'Spreadsheets', extensions: ['xlsx', 'xltx'] }],
+        filters: [{ name: 'Spreadsheets', extensions: ['xlsx', 'xltx', 'xls', 'xlt', 'xltm', 'xlsm'] }],
         properties: ['openFile', 'multiSelections']
     });
     if (dialogResponse.filePaths.length > 0) {
@@ -119,20 +121,36 @@ function processData() {
             if (shipment != null) {
                 shipment.setEmailMessage(generateEmailMessage(shipment, buyerData.userNickname));
                 shipment.setEmailSubject(getEmailSubjectByPlatform(shipment.platform));
+
                 buyerData.row.classList.add('table-warning')
                 buyerData.row.cells[3].className = 'fw-bold';
                 buyerData.row.cells[3].innerHTML = shipment.trackingId;
                 buyerData.row.cells[4].appendChild(createCopyTextButton(shipment, buyerData));
 
-                notifyShipment(shipment, buyerData);
-
                 buyerData.processed = true;
+
+                notifyShipment(shipment, buyerData);
             } else {
                 buyerData.row.classList.remove('fade-row-in');
                 buyerData.row.cells[3].className = 'fw-bold text-danger';
                 buyerData.row.cells[3].innerHTML = 'No se encontró';
             }
         })
+    //
+    retrySendingFailedEmails();
+}
+
+
+function retrySendingFailedEmails() {
+    const buyersNotNotified = buyersData.filter(buyerData => buyerData.processed && buyerData.emailStatus === EmailStatus.FAILED);
+    if (buyersNotNotified.length > 0) {
+        buyersNotNotified.forEach(buyerData => {
+            const shipment = shipments.find(shipment => shipment.compareByName(buyerData.userName));
+            if (shipment != null) {
+                notifyShipment(shipment, buyerData);
+            }
+        })
+    }
 }
 
 
@@ -300,20 +318,26 @@ function capitalize(string) {
 
 
 function notifyShipment(shipment, buyerData) {
+    // If email was already sent, exit. It shouldn't happen
+    if (buyerData.emailStatus === EmailStatus.SENT) {
+        return;
+    }
+    //
     const loadingSpinner = createLoadingSpinner();
     buyerData.row.cells[4].appendChild(loadingSpinner);
-
+    buyerData.emailStatus = EmailStatus.PENDING;
+    //
     const transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-            user: emailSenderInput.value,
+            user: emailSenderInput.value.trim(),
             pass: emailPassword.value
         }
     });
 
     const mailOptions = {
-        from: { name: userConfig.senderName, address: emailSenderInput.value },
-        to: buyerData.userEmail,
+        from: { name: userConfig.senderName, address: emailSenderInput.value.trim() },
+        to: buyerData.userEmail.trim(),
         subject: shipment.getEmailSubject(),
         text: shipment.getEmailMessage()
     };
@@ -321,12 +345,26 @@ function notifyShipment(shipment, buyerData) {
     transporter.sendMail(mailOptions, function (error, info) {
         buyerData.row.classList.remove('table-warning');
         buyerData.row.cells[4].removeChild(loadingSpinner);
+
         if (error) {
-            console.error(error);
+            if (error.message.includes('Invalid login')) {
+                showErorr("Email o contraseña del remitente invalidos")
+            }
+            buyerData.emailStatus = EmailStatus.FAILED;
+
             buyerData.row.classList.add('table-danger');
-            buyerData.row.cells[4].appendChild(createErrorIcon('Error al enviar'));
+            if (!buyerData.row.cells[4].lastChild.classList.contains('status-icon')) {
+                buyerData.row.cells[4].appendChild(createErrorIcon('Error al enviar'));
+            }
+
         } else {
+            buyerData.emailStatus = EmailStatus.SENT;
+
+            buyerData.row.classList.remove('table-danger');
             buyerData.row.classList.add('table-success');
+            if (buyerData.row.cells[4].lastChild.classList.contains('status-icon')) {
+                buyerData.row.cells[4].removeChild(buyerData.row.cells[4].lastChild);
+            }
             buyerData.row.cells[4].appendChild(createSuccessIcon('Enviado!'));
         }
     })
@@ -343,7 +381,7 @@ function createLoadingSpinner() {
 
 function createSuccessIcon(tooltipMessage) {
     const successIcon = document.createElement('i');
-    successIcon.className = 'bi bi-check-circle-fill text-success actions-padding';
+    successIcon.className = 'status-icon bi bi-check-circle-fill text-success actions-padding';
     const tooltip = new bootstrap.Tooltip(successIcon, {
         title: tooltipMessage,
         placement: 'bottom',
@@ -354,7 +392,7 @@ function createSuccessIcon(tooltipMessage) {
 
 function createErrorIcon(tooltipMessage) {
     const errorIcon = document.createElement('i');
-    errorIcon.className = 'bi bi-x-circle-fill text-danger actions-padding';
+    errorIcon.className = 'status-icon bi bi-x-circle-fill text-danger actions-padding';
     const tooltip = new bootstrap.Tooltip(errorIcon, {
         title: tooltipMessage,
         placement: 'bottom',
@@ -362,3 +400,4 @@ function createErrorIcon(tooltipMessage) {
     });
     return errorIcon;
 }
+

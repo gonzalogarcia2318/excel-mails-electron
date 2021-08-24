@@ -39,7 +39,4 @@ export class Shipment {
 
 }
 
-export const PlatformTypes = {
-    WELIVERY: 'WELIVERY',
-    OCA: 'OCA'
-};
+
