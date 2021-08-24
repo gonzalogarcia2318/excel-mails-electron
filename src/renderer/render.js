@@ -129,7 +129,10 @@ function processData() {
 
                 buyerData.processed = true;
 
-                notifyShipment(shipment, buyerData);
+                if(buyerData.userEmail) {
+                    notifyShipment(shipment, buyerData);
+                }
+                
             } else {
                 buyerData.row.classList.remove('fade-row-in');
                 buyerData.row.cells[3].className = 'fw-bold text-danger';
@@ -159,7 +162,7 @@ function onAddUserEntryClick() {
 }
 
 function addUserEntry(showError) {
-    if (!validateUserEntry(userNameInput.value, userEmailInput.value, showError)) {
+    if (!validateUserEntry(userNameInput.value, showError)) {
         return;
     }
     //
@@ -187,8 +190,8 @@ function addUserEntry(showError) {
     userNameInput.focus();
 }
 
-function validateUserEntry(userName, userEmail, showError) {
-    if (!userName || !userEmail) {
+function validateUserEntry(userName, showError) {
+    if (!userName) {
         if (showError) {
             showErorr("Usuario inválido");
         }
