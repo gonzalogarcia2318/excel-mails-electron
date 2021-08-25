@@ -52,6 +52,7 @@ ipcRenderer.on('reset-values', resetValues);
 
 
 let userConfig = { weliveryEmailMessage: null, ocaEmailMessage: null, emailSender: null, senderName: null, emailMessageSubject: null }
+
 ipcRenderer.on('user-config', (event, config) => {
     userConfig = config;
     emailSenderInput.value = userConfig.emailSender;
@@ -77,8 +78,6 @@ async function handleSelectBtn() {
 }
 
 function parseWorkbook(filePath) {
-    console.log("Process file", filePath);
-
     workbook = XLSX.readFile(filePath);
 
     workbookNames.push(filePath.split('\\')[filePath.split('\\').length - 1]);
@@ -95,8 +94,6 @@ function parseWorkbook(filePath) {
         parsedWorksheet = new OcaWorksheet(worksheet);
     }
     shipments.push(...parsedWorksheet.getShipments());
-
-    console.log("Shipments", shipments);
 };
 
 function processData() {
@@ -122,17 +119,22 @@ function processData() {
                 shipment.setEmailMessage(generateEmailMessage(shipment, buyerData.userNickname));
                 shipment.setEmailSubject(getEmailSubjectByPlatform(shipment.platform));
 
+                if (shipment.userEmail && !buyerData.userEmail) {
+                    buyerData.row.cells[2].innerText = shipment.userEmail;
+                    buyerData.userEmail = shipment.userEmail;
+                }
+
                 buyerData.row.classList.add('table-warning')
                 buyerData.row.cells[3].className = 'fw-bold';
-                buyerData.row.cells[3].innerHTML = shipment.trackingId;
+                buyerData.row.cells[3].innerText = shipment.trackingId;
                 buyerData.row.cells[4].appendChild(createCopyTextButton(shipment, buyerData));
 
                 buyerData.processed = true;
 
-                if(buyerData.userEmail) {
+                if (buyerData.userEmail) {
                     notifyShipment(shipment, buyerData);
                 }
-                
+
             } else {
                 buyerData.row.classList.remove('fade-row-in');
                 buyerData.row.cells[3].className = 'fw-bold text-danger';
@@ -331,7 +333,7 @@ function notifyShipment(shipment, buyerData) {
     buyerData.emailStatus = EmailStatus.PENDING;
     //
     const transporter = nodemailer.createTransport({
-        service: 'Gmail',
+        service: 'Zoho',
         auth: {
             user: emailSenderInput.value.trim(),
             pass: emailPassword.value

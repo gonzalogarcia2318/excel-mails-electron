@@ -1,10 +1,10 @@
 export class Shipment {
 
-    constructor(userName, trackingId, platform, status) {
+    constructor(userName, trackingId, platform, userEmail) {
         this.userName = userName;
         this.trackingId = trackingId;
         this.platform = platform;
-        this.status = status;
+        this.userEmail = userEmail;
     }
 
 

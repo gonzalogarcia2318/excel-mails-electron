@@ -15,13 +15,30 @@ export class WeliveryWorksheet {
         for (let row in this.worksheetJson) {
             const data = this.worksheetJson[row];
             if (data['Nombre y Apellido']) { // If name is not empty or null, add to array
-                this.shipments.push(new Shipment(data['Nombre y Apellido'], data['WeliveryID'], PlatformTypes.WELIVERY, data['Status']));
+                this.shipments.push(new Shipment(data['Nombre y Apellido'], data['WeliveryID'], PlatformTypes.WELIVERY, this.searchEmailFieldInRow(data)));
             }
         }
     }
 
     getShipments() {
         return this.shipments;
+    }
+
+    // Method to find email field in sheet row (if it exists). Multiple attribute names because they could vary. 
+    searchEmailFieldInRow(row) {
+        if (row['Email']) {
+            return row['Email'];
+        }
+        if (row['Mail']) {
+            return row['Mail'];
+        }
+        if (row['email']) {
+            return row['email'];
+        }
+        if (row['mail']) {
+            return row['mail'];
+        }
+        return null;
     }
 
 }
