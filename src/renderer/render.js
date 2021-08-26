@@ -9,6 +9,7 @@ const ipcRenderer = require('electron').ipcRenderer;
 const XLSX = require('xlsx');
 const bootstrap = require('bootstrap');
 const nodemailer = require('nodemailer');
+const fs = require('fs');
 
 // Elements
 const selectFileBtn = document.getElementById('selectFileBtn');
@@ -63,6 +64,8 @@ let workbook;
 let workbookNames = [];
 let shipments = [];
 let buyersData = [];
+
+const errorLogPath = `${electron.app.getPath('userData')}/error-log.txt`;
 
 async function handleSelectBtn() {
     const dialogResponse = await electron.dialog.showOpenDialog({
@@ -333,7 +336,7 @@ function notifyShipment(shipment, buyerData) {
     buyerData.emailStatus = EmailStatus.PENDING;
     //
     const transporter = nodemailer.createTransport({
-        service: 'Zoho',
+        service: 'Zoho', // Change to Gmail
         auth: {
             user: emailSenderInput.value.trim(),
             pass: emailPassword.value
@@ -361,6 +364,8 @@ function notifyShipment(shipment, buyerData) {
             if (!buyerData.row.cells[4].lastChild.classList.contains('status-icon')) {
                 buyerData.row.cells[4].appendChild(createErrorIcon('Error al enviar'));
             }
+
+            logEmailErorr(buyerData, error);
 
         } else {
             buyerData.emailStatus = EmailStatus.SENT;
@@ -406,3 +411,6 @@ function createErrorIcon(tooltipMessage) {
     return errorIcon;
 }
 
+function logEmailErorr(buyerData, error) {
+    fs.appendFile(errorLogPath, `[ERROR] SENDING EMAIL TO: ${buyerData.userName} - ${buyerData.userEmail} - RESPONSE: "${JSON.stringify(error)}" \n`, () => { });
+}
