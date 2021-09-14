@@ -123,14 +123,15 @@ function processData() {
                 shipment.setEmailSubject(getEmailSubjectByPlatform(shipment.platform));
 
                 if (shipment.userEmail && !buyerData.userEmail) {
-                    buyerData.row.cells[2].innerText = shipment.userEmail;
+                    buyerData.emailCell.innerText = shipment.userEmail;
                     buyerData.userEmail = shipment.userEmail;
                 }
 
                 buyerData.row.classList.add('table-warning')
-                buyerData.row.cells[3].className = 'fw-bold';
-                buyerData.row.cells[3].innerText = shipment.trackingId;
-                buyerData.row.cells[4].appendChild(createCopyTextButton(shipment, buyerData));
+                buyerData.trackingCell.className = 'fw-bold';
+                buyerData.trackingCell.innerText = shipment.trackingId;
+
+                buyerData.actionsCell.appendChild(createCopyTextButton(shipment, buyerData));
 
                 buyerData.processed = true;
 
@@ -140,8 +141,8 @@ function processData() {
 
             } else {
                 buyerData.row.classList.remove('fade-row-in');
-                buyerData.row.cells[3].className = 'fw-bold text-danger';
-                buyerData.row.cells[3].innerHTML = 'No se encontró';
+                buyerData.trackingCell.className = 'fw-bold text-danger';
+                buyerData.trackingCell.innerHTML = 'No se encontró';
             }
         })
     //
@@ -175,18 +176,31 @@ function addUserEntry(showError) {
         fillNickname();
     }
     //
-    const buyerData = { userName: userNameInput.value, userNickname: userNicknameInput.value, userEmail: userEmailInput.value, row: null, processed: false };
+    const buyerData = {
+        userName: userNameInput.value, userNickname: userNicknameInput.value, userEmail: userEmailInput.value, row: null, processed: false,
+        nameCell: null, nicknameCell: null, emailCell: null, trackingCell: null, actionsCell: null
+    };
+
     const table = document.getElementById('usersTable');
     let row = table.insertRow();
     buyerData.row = row;
     row.classList.add('fade-row-in', 'whitespace-nowrap');
-    row.insertCell(0).innerHTML = userNameInput.value;
-    row.insertCell(1).innerHTML = userNicknameInput.value;
-    row.insertCell(2).innerHTML = userEmailInput.value;
-    row.insertCell(3).innerHTML = "-";
-    const actionsCell = row.insertCell(4);
-    actionsCell.classList.add('d-flex', 'align-items-center');
-    actionsCell.appendChild(createDeleteRowButton(buyerData));
+    //
+    buyerData.nameCell = row.insertCell();
+    buyerData.nameCell.innerHTML = userNameInput.value;
+    //
+    buyerData.nicknameCell = row.insertCell();
+    buyerData.nicknameCell.innerHTML = userNicknameInput.value;
+    //
+    buyerData.emailCell = row.insertCell();
+    buyerData.emailCell.innerHTML = userEmailInput.value;
+    //
+    buyerData.trackingCell = row.insertCell();
+    buyerData.trackingCell.innerHTML = "-";
+    //
+    buyerData.actionsCell = row.insertCell();
+    buyerData.actionsCell.classList.add('d-flex', 'align-items-center');
+    buyerData.actionsCell.appendChild(createDeleteRowButton(buyerData));
     //
     buyersData.push(buyerData);
     userNameInput.value = null;
@@ -332,7 +346,7 @@ function notifyShipment(shipment, buyerData) {
     }
     //
     const loadingSpinner = createLoadingSpinner();
-    buyerData.row.cells[4].appendChild(loadingSpinner);
+    buyerData.actionsCell.appendChild(loadingSpinner);
     buyerData.emailStatus = EmailStatus.PENDING;
     //
     const transporter = nodemailer.createTransport({
@@ -352,7 +366,7 @@ function notifyShipment(shipment, buyerData) {
 
     transporter.sendMail(mailOptions, function (error, info) {
         buyerData.row.classList.remove('table-warning');
-        buyerData.row.cells[4].removeChild(loadingSpinner);
+        buyerData.actionsCell.removeChild(loadingSpinner);
 
         if (error) {
             if (error.message.includes('Invalid login')) {
@@ -361,8 +375,8 @@ function notifyShipment(shipment, buyerData) {
             buyerData.emailStatus = EmailStatus.FAILED;
 
             buyerData.row.classList.add('table-danger');
-            if (!buyerData.row.cells[4].lastChild.classList.contains('status-icon')) {
-                buyerData.row.cells[4].appendChild(createErrorIcon('Error al enviar'));
+            if (!buyerData.actionsCell.lastChild.classList.contains('status-icon')) {
+                buyerData.actionsCell.appendChild(createErrorIcon('Error al enviar'));
             }
 
             logEmailErorr(buyerData, error);
@@ -372,10 +386,10 @@ function notifyShipment(shipment, buyerData) {
 
             buyerData.row.classList.remove('table-danger');
             buyerData.row.classList.add('table-success');
-            if (buyerData.row.cells[4].lastChild.classList.contains('status-icon')) {
-                buyerData.row.cells[4].removeChild(buyerData.row.cells[4].lastChild);
+            if (buyerData.actionsCell.lastChild.classList.contains('status-icon')) {
+                buyerData.actionsCell.removeChild(buyerData.actionsCell.lastChild);
             }
-            buyerData.row.cells[4].appendChild(createSuccessIcon('Enviado!'));
+            buyerData.actionsCell.appendChild(createSuccessIcon('Enviado!'));
         }
     })
 }
